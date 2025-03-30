@@ -8,44 +8,72 @@ static class FrequencyAnalysisTask
 {
     public static Dictionary<string, string> GetMostFrequentNextWords(List<List<string>> text)
     {
-        var bigrams = GetNgramms(text, 2);
-        var trigrams = GetNgramms(text, 3);
-        var fourgrams = GetNgramms(text, 4);
-        var result = bigrams.Concat(trigrams).ToDictionary(x => x.Key, x => x.Value).Concat(fourgrams).ToDictionary(x => x.Key, x => x.Value);
+        var result = new Dictionary<string, string>();
+        var frequency = new Dictionary<string, int>();
+        foreach (var words in text)
+        {
+            for (int i = 0; i < words.Count - 1; i++)//биграммы
+            {
+                var bigram = $"{words[i]} {words[i + 1]}";
+                frequency.TryAdd(bigram, 0);
+                frequency[bigram] += 1;
+
+                result.TryAdd(words[i], words[i + 1]);
+                frequency.TryAdd($"{words[i]} {result[words[i]]}", 1);
+
+                if (frequency[bigram] > frequency[$"{words[i]} {result[words[i]]}"] || 
+                    (frequency[bigram] == frequency[$"{words[i]} {result[words[i]]}"] && string.Compare(words[i + 1], result[words[i]]) == -1))
+                    result[words[i]] = words[i + 1];
+            }
+
+            for (int i = 0; i < words.Count - 2; i++)//триграммы
+            {
+                string bigramKey = $"{words[i]} {words[i + 1]}", trigram = $"{bigramKey} {words[i + 2]}";
+                frequency.TryAdd(trigram, 0);
+                frequency[trigram] += 1;
+
+                result.TryAdd(bigramKey, words[i+2]);
+                frequency.TryAdd($"{bigramKey} {result[bigramKey]}", 1);
+
+                if (frequency[trigram] > frequency[$"{bigramKey} {result[bigramKey]}"] || 
+                    (frequency[trigram] == frequency[$"{bigramKey} {result[bigramKey]}"] && string.Compare(words[i + 2], result[bigramKey]) == -1))
+                    result[bigramKey] = words[i + 2];
+            }
+        }
         return result;
     }
 
     static Dictionary<string, string> GetNgramms(List<List<string>> text, int n)
     {
-        var ngrams = new Dictionary<string, string>();
+        var ngramms = new Dictionary<string, string>();
         var frequency = new Dictionary<string, int>();
 
         foreach (var words in text)
         {
             for (int i = 0; i < words.Count - n + 1; i++)
             {
-                string ngramKey = GetNgramKey(n, words, i), ngram = $"{ngramKey} {words[i + n - 1]}";
-                frequency.TryAdd(ngram, 0);
-                frequency[ngram] += 1;
+                string ngrammKey = GetNgrammKey(n, words, i), ngramm = $"{ngrammKey} {words[i + n - 1]}";
+                frequency.TryAdd(ngramm, 0);
+                frequency[ngramm] += 1;
 
-                ngrams.TryAdd(ngramKey, words[i + n - 1]);
-                frequency.TryAdd($"{ngramKey} {ngrams[ngramKey]}", 1);
+                ngramms.TryAdd(ngrammKey, words[i + n - 1]);
+                frequency.TryAdd($"{ngrammKey} {ngramms[ngrammKey]}", 1);
 
-                if (frequency[ngram] > frequency[$"{ngramKey} {ngrams[ngramKey]}"] ||
-                    (frequency[ngram] == frequency[$"{ngramKey} {ngrams[ngramKey]}"] && string.Compare(words[i + n - 1], ngrams[ngramKey]) == -1))
-                    ngrams[ngramKey] = words[i + n - 1];
+                if (frequency[ngramm] > frequency[$"{ngrammKey} {ngramms[ngrammKey]}"] ||
+                    (frequency[ngramm] == frequency[$"{ngrammKey} {ngramms[ngrammKey]}"] && string.Compare(words[i + n - 1], ngramms[ngrammKey]) == -1))
+                    ngramms[ngrammKey] = words[i + n - 1];
             }
         }
-        return ngrams;
+        return ngramms;
     }
 
-    static string GetNgramKey(int n, List<string> words, int i)
+    static string GetNgrammKey(int n, List<string> words, int i)
     {
-        var ngramKey = new StringBuilder( $"{words[i]}" );
-        for (int j =  1; j < n - 1; j++)
+        var ngrammKey = new StringBuilder( $"{words[i]}" );
+        for (int j =  1; j < n; j++)
         {
-            ngramKey.Append($" {words[i+j]}");
+            ngrammKey.Append($" {words[i+j]}");
         }
-        return ngramKey.ToString();
+        return ngrammKey.ToString();
     }
 }
