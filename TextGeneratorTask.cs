@@ -16,13 +16,11 @@ static class TextGeneratorTask
                 finalPhraseList.Add(wordsFirstPhrase);
             for (int i = 0; i < wordsCount; i++)
             {
-                if (finalPhraseList.Count >= 2 && nextWords.ContainsKey($"{finalPhraseList[finalPhraseList.Count - 2]} {finalPhraseList[finalPhraseList.Count - 1]}"))
-                    finalPhraseList.Add($"{nextWords[$"{finalPhraseList[finalPhraseList.Count - 2]} {finalPhraseList[finalPhraseList.Count - 1]}"]}");
-
-                else if (finalPhraseList.Count > 0 && nextWords.ContainsKey($"{finalPhraseList[finalPhraseList.Count - 1]}"))
-                    finalPhraseList.Add($"{nextWords[$"{finalPhraseList[finalPhraseList.Count - 1]}"]}");
-
-                else break;
+                if (TryUseNgram(nextWords, 5, ref finalPhraseList)) continue;
+                if (TryUseNgram(nextWords, 4, ref finalPhraseList)) continue;
+                if (TryUseNgram(nextWords, 3, ref finalPhraseList)) continue;
+                if (TryUseNgram(nextWords, 2, ref finalPhraseList)) continue;
+                break;
             }
         }
         var finalPhrase = new StringBuilder();
@@ -31,6 +29,29 @@ static class TextGeneratorTask
             if (i == finalPhraseList.Count - 1) finalPhrase.Append($"{finalPhraseList[i]}");
             else finalPhrase.Append($"{finalPhraseList[i]} ");
         }
-        return finalPhrase.ToString();//phraseBeginning;
+        return finalPhrase.ToString();
+    }
+
+    static bool TryUseNgram(Dictionary<string, string> ngram, int n, ref List<string> finalPhraseList)
+    {
+        if (finalPhraseList.Count >= n - 1)
+        {
+            string ngramKey = GetNgramKey(n, finalPhraseList);
+            if (ngram.ContainsKey($"{ngramKey}"))
+            {
+                finalPhraseList.Add($"{ngram[$"{ngramKey}"]}");
+                return true;
+            }
+        }
+        return false; 
+    }
+
+    static string GetNgramKey(int n, List<string> finalPhraseList)
+    {
+        var ngramKey = new StringBuilder($"{finalPhraseList[^(n - 1)]}");
+        for (int j = n - 2; j > 0; j--)
+            ngramKey.Append($" {finalPhraseList[^j]}");
+
+        return ngramKey.ToString();
     }
 }

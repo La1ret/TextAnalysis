@@ -11,7 +11,9 @@ static class FrequencyAnalysisTask
         var bigrams = GetNgramms(text, 2);
         var trigrams = GetNgramms(text, 3);
         var fourgrams = GetNgramms(text, 4);
-        var result = bigrams.Concat(trigrams).ToDictionary(x => x.Key, x => x.Value).Concat(fourgrams).ToDictionary(x => x.Key, x => x.Value);
+        var fivegrams = GetNgramms(text, 5);
+        var result = bigrams.Concat(trigrams).ToDictionary(x => x.Key, x => x.Value).Concat(fourgrams).ToDictionary(x => x.Key, x => x.Value)
+            .Concat(fivegrams).ToDictionary(x => x.Key, x => x.Value);
         return result;
     }
 
@@ -24,7 +26,7 @@ static class FrequencyAnalysisTask
         {
             for (int i = 0; i < words.Count - n + 1; i++)
             {
-                string ngramKey = GetNgramKey(n, words, i), ngram = $"{ngramKey} {words[i + n - 1]}";
+                string ngramKey = MakeNgramKey(n, words, i), ngram = $"{ngramKey} {words[i + n - 1]}";
                 frequency.TryAdd(ngram, 0);
                 frequency[ngram] += 1;
 
@@ -39,7 +41,7 @@ static class FrequencyAnalysisTask
         return ngrams;
     }
 
-    static string GetNgramKey(int n, List<string> words, int i)
+    static string MakeNgramKey(int n, List<string> words, int i)
     {
         var ngramKey = new StringBuilder( $"{words[i]}" );
         for (int j =  1; j < n - 1; j++)
