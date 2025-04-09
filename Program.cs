@@ -20,7 +20,7 @@ public static class Program
         // });
 
 
-        var text = File.ReadAllText("HarryPotterText.txt");
+        var text = File.ReadAllText("FullTextMoomins.txt");
         var sentences = SentencesParserTask.ParseSentences(text);
         var frequency = FrequencyAnalysisTask.GetMostFrequentNextWords(sentences);
         var frequency2 = FrequencyAnalysisTask.GetNextWords(sentences);
